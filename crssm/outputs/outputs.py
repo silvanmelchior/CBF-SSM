@@ -55,8 +55,7 @@ class Outputs:
             plt.plot(self.trainer.train_all, label='train')
             plt.plot(self.trainer.test_all, label='test')
             plt.legend()
-            plt.title('Negative Log-Likelihood')
-            plt.savefig(self.out_dir + '/training.eps')
+            plt.savefig(self.out_dir + '/training_loss.pdf')
             plt.close(1)
 
     def prediction(self, sess, predict_size=300):
@@ -86,10 +85,10 @@ class Outputs:
         plt.grid(True)
         plt.xlabel("time (steps)")
         plt.xlim([0, predict_size])
-        plt.savefig(self.out_dir + '/predict_train.eps', bbox_inches='tight')
+        plt.savefig(self.out_dir + '/predict_train.pdf', bbox_inches='tight')
         plt.close(1)
 
-        scipy.io.savemat(self.out_dir + '/prediction_train.mat',
+        scipy.io.savemat(self.out_dir + '/predict_train.mat',
                          {'mean': pred_train, 'std': var_train, 'gt': gt_train})
 
         # Test
@@ -113,10 +112,10 @@ class Outputs:
         plt.grid(True)
         plt.xlabel("time (steps)")
         plt.xlim([0, predict_size])
-        plt.savefig(self.out_dir + '/predict_test.eps', bbox_inches='tight')
+        plt.savefig(self.out_dir + '/predict_test.pdf', bbox_inches='tight')
         plt.close(1)
 
-        scipy.io.savemat(self.out_dir + '/prediction_test.mat',
+        scipy.io.savemat(self.out_dir + '/predict_test.mat',
                          {'mean': pred_test, 'std': var_test, 'gt': gt_test})
 
     def test_mse(self, sess):
@@ -135,7 +134,7 @@ class Outputs:
 
         mse_all = np.mean(np.asarray(mse_all))
         rmse_all = math.sqrt(mse_all)
-        text_file = open(self.out_dir + '/mse_denormalized.txt', 'w')
+        text_file = open(self.out_dir + '/mse.txt', 'w')
         text_file.write("MSE:  %f\n" % mse_all)
         text_file.write("RMSE: %f\n" % rmse_all)
         text_file.close()

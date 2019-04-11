@@ -38,7 +38,7 @@ class OutputsVoliro(Outputs):
         gt2 = ds.test_out2[0, :, :]
 
         # plot forces
-        fig = plt.figure(2, figsize=(13.968*0.9/2.54, 13.968*0.9/12*8/2.54))
+        fig = plt.figure(2, figsize=(12, 9))
 
         for i, (predn, gtn) in enumerate([(ft1_pm, gt1), (ft2_pm, gt2)]):
             ax = fig.add_subplot(221 + i)
@@ -99,6 +99,5 @@ class OutputsVoliro(Outputs):
             plt.grid(True)
             plt.xlim([0, gtn.shape[0]])
 
-        plt.tight_layout(pad=0.2)
-        plt.savefig(self.out_dir + '/voliro_prediction.pdf')
+        plt.savefig(self.out_dir + '/voliro_forces.pdf', bbox_inches='tight')
         plt.close(2)

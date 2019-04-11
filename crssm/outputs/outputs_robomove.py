@@ -1,7 +1,4 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import scipy.special
-import scipy.io
 from crssm.outputs.outputs import Outputs
 
 
@@ -52,13 +49,3 @@ class OutputsRoboMove(Outputs):
         plt.yticks([])
         plt.savefig(self.out_dir + '/robomove_test.pdf', bbox_inches='tight')
         plt.close(1)
-
-        # Raw Prediction
-        pred_train = np.expand_dims(pred_train, axis=0)
-        var_train = np.tile(np.expand_dims(var_train, axis=3), [1, 1, 1, 4])
-        pred_test = np.expand_dims(pred_test, axis=0)
-        var_test = np.tile(np.expand_dims(var_test, axis=3), [1, 1, 1, 4])
-        scipy.io.savemat(self.out_dir + '/pred_train.mat',
-                         {'M_train': pred_train, 'S_train': var_train})
-        scipy.io.savemat(self.out_dir + '/pred_test.mat',
-                         {'M_test': pred_test, 'S_test': var_test})
