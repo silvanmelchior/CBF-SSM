@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
-from crssm.model.tf_transform import backward, forward
-from crssm.model.gp_tf import RBF, conditional
-from crssm.model.base_model import BaseModel
+from cbfssm.model.tf_transform import backward, forward
+from cbfssm.model.gp_tf import RBF, conditional
+from cbfssm.model.base_model import BaseModel
 
 
 class PRSSM(BaseModel):

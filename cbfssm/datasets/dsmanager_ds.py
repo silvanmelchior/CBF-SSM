@@ -1,6 +1,6 @@
 import numpy as np
 from datasets.ds_manager import DSManager
-from crssm.datasets.base_ds import BaseDS
+from cbfssm.datasets.base_ds import BaseDS
 
 
 class DSManagerDS(BaseDS):

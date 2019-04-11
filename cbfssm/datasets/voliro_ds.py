@@ -1,5 +1,5 @@
 import numpy as np
-from crssm.datasets.base_ds import BaseDS
+from cbfssm.datasets.base_ds import BaseDS
 from datasets.voliro_ext_ds import VoliroBaseDS
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from crssm.datasets.base_ds import BaseDS
+from cbfssm.datasets.base_ds import BaseDS
 from datasets.prssm.real_world_tasks import SarcosArm
 from datasets.prssm.real_world_tasks import Actuator as ActuatorBuilder
 from datasets.prssm.real_world_tasks import Ballbeam as BallbeamBuilder

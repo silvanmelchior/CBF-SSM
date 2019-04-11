@@ -1,9 +1,9 @@
 import numpy as np
-from crssm.datasets.prssm_ds import Sarcos
-from crssm.training.trainer import Trainer
-from crssm.outputs.outputs import Outputs
-from crssm.outputs.output_summary import OutputSummary
-from crssm.model.crssm import CRSSM
+from cbfssm.datasets.prssm_ds import Sarcos
+from cbfssm.training.trainer import Trainer
+from cbfssm.outputs.outputs import Outputs
+from cbfssm.outputs.output_summary import OutputSummary
+from cbfssm.model.cbfssm import CBFSSM
 
 
 #
@@ -11,7 +11,7 @@ from crssm.model.crssm import CRSSM
 #
 root_dir = "run_output/sarcos"
 ds_sel = Sarcos
-model_sel = CRSSM
+model_sel = CBFSSM
 output_sel = Outputs
 iterations = 5
 epochs = 8

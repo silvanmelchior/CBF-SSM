@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from crssm.outputs.outputs import Outputs
+from cbfssm.outputs.outputs import Outputs
 from matplotlib.lines import Line2D
 
 

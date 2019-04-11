@@ -1,10 +1,10 @@
 import math
 import numpy as np
 import tensorflow as tf
-from crssm.model.base_model import BaseModel
+from cbfssm.model.base_model import BaseModel
 from utils.quaternions import Quaternion
-from crssm.model.tf_transform import backward, forward
-from crssm.model.gp_tf import RBF, conditional
+from cbfssm.model.tf_transform import backward, forward
+from cbfssm.model.gp_tf import RBF, conditional
 
 
 class Voliro(BaseModel):

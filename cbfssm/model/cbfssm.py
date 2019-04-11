@@ -1,14 +1,14 @@
 import numpy as np
 import tensorflow as tf
-from crssm.model.tf_transform import backward, forward
-from crssm.model.gp_tf import RBF, conditional
-from crssm.model.base_model import BaseModel
+from cbfssm.model.tf_transform import backward, forward
+from cbfssm.model.gp_tf import RBF, conditional
+from cbfssm.model.base_model import BaseModel
 
 
-class CRSSM(BaseModel):
+class CBFSSM(BaseModel):
 
     def __init__(self, config):
-        super(CRSSM, self).__init__(config)
+        super(CBFSSM, self).__init__(config)
 
     def _build_graph(self):
         with self.graph.as_default():

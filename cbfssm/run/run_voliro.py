@@ -1,9 +1,9 @@
 import numpy as np
-from crssm.datasets.voliro_ds import VoliroFlipDS
-from crssm.training.trainer import Trainer
-from crssm.outputs.outputs_voliro import OutputsVoliro
-from crssm.outputs.output_summary import OutputSummary
-from crssm.model.voliro import Voliro
+from cbfssm.datasets.voliro_ds import VoliroFlipDS
+from cbfssm.training.trainer import Trainer
+from cbfssm.outputs.outputs_voliro import OutputsVoliro
+from cbfssm.outputs.output_summary import OutputSummary
+from cbfssm.model.voliro import Voliro
 
 
 #
