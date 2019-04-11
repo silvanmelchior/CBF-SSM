@@ -1,5 +1,5 @@
 import numpy as np
-from crssm.datasets.robomove_ds import RoboMove
+from crssm.datasets.dsmanager_ds import RoboMove
 from crssm.training.trainer import Trainer
 from crssm.outputs.outputs_robomove import OutputsRoboMove
 from crssm.outputs.output_summary import OutputSummary
@@ -18,8 +18,8 @@ for phase in range(2):
     iterations = 1
     train = True
     retrain = (phase == 1)
-    epochs = 1  # 100  TODO
-    seq_len = 10  # 300  TODO
+    epochs = 100
+    seq_len = 300
     seq_stride = 50
     dim_x = 4
     ind_pnt_num = 100

@@ -1,5 +1,5 @@
 import numpy as np
-from utils.rand_vec import rand_vec
+from datasets.rand_vec import rand_vec
 
 
 class LinearDS:

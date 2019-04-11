@@ -2,7 +2,6 @@ import math
 import numpy as np
 from datasets.linear_ds import LinearDS
 from datasets.ds_manager import DSManager
-import matplotlib.pyplot as plt
 
 
 #
@@ -18,7 +17,6 @@ class SpringNonlinear(LinearDS):
 # Config
 #
 ds_size = 10000
-plot_size = 2000
 save_ds = False
 b = 0.05
 k = 1.
@@ -55,16 +53,3 @@ u_all, x_all, y_all = DSManager.sample_ds_matrix(ds, ds_size, u_fn)
 if save_ds:
     DSManager.save_ds(path, u_all, x_all, y_all, title)
     print("Saved " + title)
-print("Plotting {pl} from {ds} points".format(pl=plot_size, ds=ds_size))
-
-
-#
-# Plot
-#
-plt.plot([p[0] for p in x_all][:plot_size], label='pos')
-# plt.plot([p[1] for p in x_all][:plot_size], label='speed')
-# plt.plot([p[2] for p in x_all][:plot_size], label='acc')
-plt.plot(u_all[:plot_size], label='u')
-# plt.plot(y_all[:plot_size], label='meas')
-plt.legend()
-plt.show()

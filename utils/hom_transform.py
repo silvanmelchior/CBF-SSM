@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# transformations.py
+# hom_transform.py
 
 # Copyright (c) 2006-2018, Christoph Gohlke
 # Copyright (c) 2006-2018, The Regents of the University of California

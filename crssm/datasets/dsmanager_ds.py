@@ -49,7 +49,7 @@ class RoboMove(DSManagerDS):
         self.prepare_data(path, split)
 
 
-class SpringNonlinear(DSManagerDS):  # TODO: move to own section
+class SpringNonlinear(DSManagerDS):
 
     dim_u = 1
     dim_y = 1

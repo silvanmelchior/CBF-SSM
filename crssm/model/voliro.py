@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from crssm.model.base_model import BaseModel
 from utils.quaternions import Quaternion
-from crssm.model.transformation import backward, forward
+from crssm.model.tf_transform import backward, forward
 from crssm.model.gp_tf import RBF, conditional
 
 

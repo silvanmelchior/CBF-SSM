@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from utils.rand_vec import rand_arr
+from datasets.rand_vec import rand_arr
 
 
 class RoboMoveDS:
@@ -66,7 +66,8 @@ class RoboMoveDS:
         cov = np.eye(2) * self.sigma_y
         return self.pos + rand_arr(2, cov)
 
-    def get_xdim(self):
+    @staticmethod
+    def get_xdim():
         """get dimensionality of hidden state"""
         return 3
 
@@ -133,45 +134,7 @@ class RoboMoveSimpleDS:
         cov = np.eye(4) * self.sigma_y
         return self.get_state() + rand_arr(4, cov)
 
-    def get_xdim(self):
+    @staticmethod
+    def get_xdim():
         """get dimensionality of hidden state"""
         return 4
-
-
-class RoboMoveNoRotDS:
-    """As above, but full observation and continuous internal representation"""
-
-    def __init__(self, start_pos, sigma_x, sigma_y, contraction=0.7):
-        assert(len(start_pos.shape) == 1)
-        assert(start_pos.shape[0] == 2)
-        self.pos = start_pos
-        self.sigma_x = sigma_x
-        self.sigma_y = sigma_y
-        self.contraction = contraction
-
-    def get_state(self):
-        return self.pos
-
-    def propagate_fn(self, x, u):
-        x_new = x + u
-        x_new *= self.contraction
-        cov = np.eye(2) * self.sigma_x
-        x_new += rand_arr(2, cov)
-        return x_new
-
-    def propagate(self, u):
-        x = self.propagate_fn(self.get_state(), u)
-        self.pos = x
-
-    def measure(self):
-        cov = np.eye(2) * self.sigma_y
-        return self.get_state() + rand_arr(2, cov)
-
-
-def distort_view(x, theta=0.7*0.5*math.pi, move=11):
-    x_new = x[0]
-    y_new = x[1] * math.cos(theta)
-    z_new = x[1] * math.sin(theta) + move
-    y_new = y_new / z_new
-    x_new = x_new / z_new
-    return [x_new, y_new]

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from crssm.model.transformation import forward, backward
+from crssm.model.tf_transform import forward, backward
 
 
 class RBF:

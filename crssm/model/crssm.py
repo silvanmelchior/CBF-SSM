@@ -1,14 +1,9 @@
 import numpy as np
 import tensorflow as tf
-from crssm.model.transformation import backward, forward
+from crssm.model.tf_transform import backward, forward
 from crssm.model.gp_tf import RBF, conditional
 from crssm.model.base_model import BaseModel
 
-
-# TODO: test if works with dim_x = dim_y
-# TODO: make work for recog_len = 1 or 0
-# TODO: for prediciton, dont build up full BW model
-# TODO: add option to also go back once only (faster I guess)
 
 class CRSSM(BaseModel):
 

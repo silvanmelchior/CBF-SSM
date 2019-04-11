@@ -50,6 +50,7 @@ class Actuator(PRSSMDS):
 
 
 class Ballbeam(PRSSMDS):
+
     dim_u = 1
     dim_y = 1
 
