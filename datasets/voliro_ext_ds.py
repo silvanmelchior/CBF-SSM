@@ -1,3 +1,7 @@
+"""
+Parts of this code were provided by Karen Bodie, 2018
+"""
+
 import numpy as np
 import scipy.io
 from utils.hom_transform import euler_from_quaternion, euler_matrix, quaternion_from_euler

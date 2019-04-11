@@ -1,3 +1,16 @@
+"""
+Copyright (c) 2018 Robert Bosch GmbH
+All rights reserved.
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+@author: Andreas Doerr
+
+The following snippets are derived from GPFlow V 1.0
+  (https://github.com/GPflow/GPflow)
+Copyright 2017 st--, Mark van der Wilk, licensed under the Apache License, Version 2.0,
+cf. 3rd-party-licenses.txt file in the root directory of this source tree.
+"""
+
 import tensorflow as tf
 from cbfssm.model.tf_transform import forward, backward
 

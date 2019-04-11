@@ -1,3 +1,9 @@
+"""
+This model is a re-implementation of PR-SSM (Doerr et al., 2018)
+It is mostly based on the original code and adapted to fit into the existing framework
+Copyright 2018 Robert Bosch GmbH, licensed under the MIT license
+"""
+
 import numpy as np
 import tensorflow as tf
 from cbfssm.model.tf_transform import backward, forward
