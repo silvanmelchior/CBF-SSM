@@ -2,7 +2,8 @@
 
 This repository contains the official implementation of the CBF-SSM model presented in
 [Non-Factorized Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/)
-by Silvan Melchior et al., 2019. (TODO: adjust link, add conference)
+by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause (TODO: adjust link). It was published
+at TODO, 2019.
 
 Please cite the above paper when using this code in any way.
 
