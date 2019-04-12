@@ -208,7 +208,6 @@ class Voliro(BaseModel):
 
     def _forward_body(self, u, x, y, p, t):
         samples = self.config['samples']
-        cond_factor = self.config['cond_factor']
 
         # read input
         u_t = u.read(t)
@@ -223,7 +222,6 @@ class Voliro(BaseModel):
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
                               [self.batch_tf, samples, 1])
-        var_y_tiled += (cond_factor - 1.) * fvar
         y_diff = y_t - fmean
         s = var_y_tiled + fvar
         k = fvar * tf.reciprocal(s)
@@ -292,8 +290,8 @@ class Voliro(BaseModel):
     def _build_train(self):
         loglik_factor = self.config['loglik_factor']
         elbo = (self.loglik - self.kl_x) * loglik_factor[0] \
-            + (self.n_reg + self.l_reg) * loglik_factor[1] \
-            + self.entropy * loglik_factor[2] \
+            + self.entropy * loglik_factor[1] \
+            + (self.n_reg + self.l_reg) * loglik_factor[2] \
             - (self.kl_z_f + self.kl_z_b)
         self.loss = tf.negative(elbo)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.config['learning_rate'])

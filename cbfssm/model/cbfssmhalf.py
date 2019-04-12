@@ -210,7 +210,7 @@ class CBFSSMHALF(BaseModel):
 
         # loss
         elbo = loglik * loss_factors[0]\
-            - self.kl_x * loss_factors[1]\
+            - self.kl_x * loss_factors[0]\
             - kl_z_f
         self.loss = tf.negative(elbo)
 

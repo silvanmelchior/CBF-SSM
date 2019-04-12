@@ -273,8 +273,8 @@ class CBFSSM(BaseModel):
 
         # loss
         elbo = loglik * loss_factors[0]\
-            - self.kl_x * loss_factors[1]\
-            + self.entropy * loss_factors[2]\
+            - self.kl_x * loss_factors[0]\
+            + self.entropy * loss_factors[1]\
             - kl_z_f - kl_z_b
         self.loss = tf.negative(elbo)
 
