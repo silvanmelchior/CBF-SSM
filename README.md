@@ -24,7 +24,7 @@ All datasets need to be placed in [datasets/data](datasets/data).
 
 ## Python Path
 
-The script [set_path.sh](set_path.sh) sets the paython path in a linux bash console s.t.
+The script [set_path.sh](set_path.sh) sets $PYTHONPATH in a linux bash console s.t.
 the import statements of all scripts are correct:
 
 ```
