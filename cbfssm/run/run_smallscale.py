@@ -43,7 +43,7 @@ for task_nr in tasks:
         'samples': 50,
         'learning_rate': 0.1,
         'loss_factors': np.asarray([1., 0.]) * datasets[task_nr][2],
-        'cond_factor': [1., datasets[task_nr][3]],
+        'k_factor': datasets[task_nr][3],
         'recog_len': 16,
         # variables init state
         'zeta_pos': 2.,

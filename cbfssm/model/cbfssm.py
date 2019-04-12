@@ -186,7 +186,7 @@ class CBFSSM(BaseModel):
         dim_x = self.config['dim_x']
         samples = self.config['samples']
         recog_len = self.config['recog_len']
-        cond_factor = self.config['cond_factor']
+        k_factor = self.config['k_factor']
 
         # read input
         u_t = u.read(t)
@@ -211,8 +211,7 @@ class CBFSSM(BaseModel):
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
                               [self.batch_tf, samples, 1])
-        var_y_tiled *= cond_factor[0]
-        var_y_tiled += (cond_factor[1] - 1.) * fvar
+        var_y_tiled += (k_factor - 1.) * fvar
         y_diff = y_t - fmean
         s = var_y_tiled + fvar
         k = fvar * tf.reciprocal(s)

@@ -13,6 +13,8 @@ class DSManagerDS(BaseDS):
         u_data, _, y_data = DSManager.load_ds(path)
         if y_crop is not None:
             y_data = y_data[:, :y_crop]
+
+        # Normalize
         self.normalize_init(u_data, y_data)
         u_data = self.normalize(u_data, 'in')
         y_data = self.normalize(y_data, 'out')

@@ -31,7 +31,7 @@ for phase in range(2):
         'samples': 50,
         'learning_rate': 0.01,
         'loss_factors': np.asarray([0.4, 0.08 * (phase == 1)]),
-        'cond_factor': [1., 1.],
+        'k_factor': 1.,
         'recog_len': 50,
         # variables init state
         'zeta_pos': 2.,

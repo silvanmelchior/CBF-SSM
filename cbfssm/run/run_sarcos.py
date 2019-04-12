@@ -29,7 +29,7 @@ model_config = {
     'samples': 20,
     'learning_rate': 0.05,
     'loss_factors': np.asarray([0.3, 0.]),
-    'cond_factor': [1., 50.],
+    'k_factor': 50.,
     'recog_len': 16,
     # variables init state
     'zeta_pos': 2.,

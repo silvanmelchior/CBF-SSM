@@ -131,7 +131,7 @@ class CBFSSMHALF(BaseModel):
         dim_y = self.config['ds'].dim_y
         samples = self.config['samples']
         recog_len = self.config['recog_len']
-        cond_factor = self.config['cond_factor']
+        k_factor = self.config['k_factor']
 
         # read input
         u_t = u.read(t)
@@ -156,7 +156,7 @@ class CBFSSMHALF(BaseModel):
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
                               [self.batch_tf, samples, 1])
-        var_y_cond = var_y_tiled * cond_factor[0]
+        var_y_cond = var_y_tiled * k_factor  # TODO: change to additive version, test
         y_diff = y_t - fmean[:, :, :dim_y]
         s = var_y_cond + fvar[:, :, :dim_y]
         k = fvar[:, :, :dim_y] * tf.reciprocal(s)
