@@ -34,7 +34,7 @@ model_config = {
     'zeta_mean': 0.1 ** 2,
     'zeta_var': 0.01 ** 2,
     'var_x': np.asarray([0.1 ** 2] * dim_x),
-    'var_y': np.asarray([1. ** 2] * dim_x),
+    'var_y': np.asarray([1. ** 2] * dim_x),  # TODO: see if need comment for CBFSSM-HALF
     'gp_var': 0.1 ** 2,
     'gp_len': 1.
 }
