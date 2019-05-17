@@ -63,31 +63,22 @@ class CBFSSMHALF(BaseModel):
         self.y_array = self.y_array.unstack(y_dub)
 
     def _recog_model(self, sample_in, sample_out):
-        recog = self.config['recog_model']
         recog_len = self.config['recog_len']
         samples = self.config['samples']
         dim_x = self.config['dim_x']
         dim_y = self.config['ds'].dim_y
         x_0 = None
 
+        if 'recog_model' in self.config:
+            recog = self.config['recog_model']
+        else:
+            recog = 'rnn'
+
         if recog == 'output':
             x_0 = sample_out[:, 0, :]
             pad = tf.zeros((self.batch_tf, dim_x - dim_y), dtype=tf.float64)
             x_0 = tf.concat((x_0, pad), axis=1)
             x_0 = tf.tile(tf.expand_dims(x_0, axis=1), [1, samples, 1])
-
-        if recog == 'rnn':
-            sample_uy = tf.concat((sample_in, sample_out), axis=2)
-            sample_uy = sample_uy[:, :recog_len, :]
-            sample_uy = tf.cast(sample_uy, tf.float32)
-
-            layer1 = tf.layers.conv1d(sample_uy, 5, 3, activation=tf.nn.relu)
-            pool1 = tf.layers.max_pooling1d(layer1, 2, 2)
-            out1 = tf.reshape(pool1, [self.batch_tf, 35])
-            dense2 = tf.layers.dense(out1, dim_x)
-            dense2 = tf.cast(dense2, tf.float64)
-
-            x_0 = tf.expand_dims(dense2, axis=1) + tf.zeros((self.batch_tf, samples, dim_x), dtype=tf.float64)
 
         if recog == 'rnn':
             sample_uy = tf.concat((sample_in, sample_out), axis=2)
@@ -156,15 +147,15 @@ class CBFSSMHALF(BaseModel):
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
                               [self.batch_tf, samples, 1])
-        var_y_cond = var_y_tiled * k_factor  # TODO: change to additive version, test
+        var_y_tiled += (k_factor - 1.) * fvar[:, :, :self.config['ds'].dim_y]
         y_diff = y_t - fmean[:, :, :dim_y]
-        s = var_y_cond + fvar[:, :, :dim_y]
+        s = var_y_tiled + fvar[:, :, :dim_y]
         k = fvar[:, :, :dim_y] * tf.reciprocal(s)
         pad = tf.zeros((self.batch_tf, samples, dim_x - dim_y), dtype=tf.float64)
         mu = fmean + tf.concat((k * y_diff, pad), axis=2)
         sig = tf.ones((self.batch_tf, samples, dim_x), dtype=tf.float64) - tf.concat((k, pad), axis=2)
         sig = tf.square(sig) * fvar
-        sig += tf.concat((tf.square(k) * var_y_cond, pad), axis=2)
+        sig += tf.concat((tf.square(k) * var_y_tiled, pad), axis=2)
         x_t = tf.add(mu, tf.multiply(eps, tf.sqrt(sig)))
 
         # sample p(x_t | x_{t-1})

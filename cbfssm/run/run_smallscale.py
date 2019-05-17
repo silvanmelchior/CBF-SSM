@@ -50,7 +50,7 @@ for task_nr in tasks:
         'zeta_mean': 0.05 ** 2,
         'zeta_var': 0.01 ** 2,
         'var_x': np.asarray([0.002 ** 2] * dim_x),
-        'var_y': np.asarray([1. ** 2] * dim_x),  # TODO: was ds_sel.dim_y before
+        'var_y': np.asarray([1. ** 2] * dim_x),
         'gp_var': 0.5 ** 2,
         'gp_len': 2.
     }
