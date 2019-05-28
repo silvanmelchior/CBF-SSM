@@ -21,8 +21,9 @@ class BaseModel:
             self.repeats = tf.placeholder(tf.int64)
             self.condition = tf.placeholder(tf.bool)
             dataset = tf.data.Dataset.from_tensor_slices((self.data_in, self.data_out))
-            dataset = dataset.repeat(self.repeats).shuffle(
-                self.config['shuffle']).batch(self.config['batch_size'])
+            dataset = dataset.repeat(self.repeats).shuffle(self.config['shuffle'])
+            dataset = dataset.batch(self.config['batch_size'])
+            dataset = dataset.prefetch(buffer_size=1)
             self.dataset_iterator = dataset.make_initializable_iterator()
             self.sample_in, self.sample_out = self.dataset_iterator.get_next()  # [batch_size, seq_len, dim]
             self.batch_tf = tf.shape(self.sample_in)[0]  # size of current batch
