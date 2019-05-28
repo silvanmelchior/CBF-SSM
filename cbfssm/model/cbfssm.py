@@ -49,6 +49,11 @@ class CBFSSM(BaseModel):
         self.kern_b = RBF(self.config['gp_var'],
                           np.asarray([self.config['gp_len']] * (dim_x + dim_u)))
 
+        Kmm_f = self.kern_f.K(self.zeta_pos_f)
+        self.Lm_f = tf.cholesky(Kmm_f)
+        Kmm_b = self.kern_f.K(self.zeta_pos_b)
+        self.Lm_b = tf.cholesky(Kmm_b)
+
         self.var_dict = {'process noise': self.var_x,
                          'observation noise': self.var_y,
                          'kernel lengthscales f': self.kern_f.lengthscales,
@@ -136,7 +141,8 @@ class CBFSSM(BaseModel):
         in_t_reshape = tf.reshape(in_t, (self.batch_tf * samples, dim_x + dim_u))
 
         fmean, fvar = conditional(in_t_reshape, self.zeta_pos_b, self.kern_b,
-                                  self.zeta_mean_b, tf.sqrt(self.zeta_var_b))
+                                  self.zeta_mean_b, tf.sqrt(self.zeta_var_b),
+                                  Lm=self.Lm_b)
 
         fmean = tf.reshape(fmean, (self.batch_tf, samples, dim_out))
         fvar = tf.reshape(fvar, (self.batch_tf, samples, dim_out))
@@ -144,6 +150,8 @@ class CBFSSM(BaseModel):
         fvar = fvar + self.var_x[:dim_out]
 
         # sampling
+        # p_next = tfp.distributions.MultivariateNormalDiag(fmean, fvar)
+        # out = p_next.sample(1).squeeze(0)
         eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=tf.float64), [1, 1, dim_out])
         out = tf.add(fmean, tf.multiply(eps, tf.sqrt(fvar)))
         y2_out = tf.cond(write_cond, lambda: y2.write(t, out), lambda: y2)
@@ -198,7 +206,8 @@ class CBFSSM(BaseModel):
         in_t_reshape = tf.reshape(in_t, (self.batch_tf * samples, dim_u + dim_x))
 
         fmean, fvar = conditional(in_t_reshape, self.zeta_pos_f, self.kern_f,
-                                  self.zeta_mean_f, tf.sqrt(self.zeta_var_f))
+                                  self.zeta_mean_f, tf.sqrt(self.zeta_var_f),
+                                  Lm=self.Lm_f)
 
         fmean = tf.reshape(fmean, (self.batch_tf, samples, dim_x))
         fvar = tf.reshape(fvar, (self.batch_tf, samples, dim_x))

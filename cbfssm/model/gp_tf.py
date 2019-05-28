@@ -47,14 +47,15 @@ class RBF:
         return self.variance * tf.exp(-self.square_dist(X, X2) / 2)
 
 
-def conditional(Xnew, X, kern, f, q_sqrt):
+def conditional(Xnew, X, kern, f, q_sqrt, Lm=None):
 
     # compute kernel stuff
     num_data = tf.shape(X)[0]
     num_func = tf.shape(f)[1]
     Kmn = kern.K(X, Xnew)
-    Kmm = kern.K(X) + tf.eye(num_data, dtype=tf.float64) * 1e-8
-    Lm = tf.cholesky(Kmm)
+    if Lm is None:
+        Kmm = kern.K(X) + tf.eye(num_data, dtype=tf.float64) * 1e-8
+        Lm = tf.cholesky(Kmm)
 
     # Compute the projection matrix A
     A = tf.matrix_triangular_solve(Lm, Kmn, lower=True)
