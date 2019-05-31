@@ -270,8 +270,7 @@ class CBFSSM(BaseModel):
         loglik = tf.reduce_sum(log_probs)
 
         # KL div regularizer z_f
-        k_prior = self.kern_f.K(self.zeta_pos_f, self.zeta_pos_f)
-        scale_prior = tf.tile(tf.expand_dims(tf.cholesky(k_prior), 0), [dim_x, 1, 1])
+        scale_prior = tf.tile(tf.expand_dims(self.Lm_f, 0), [dim_x, 1, 1])
         zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
             loc=tf.zeros((dim_x, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
         zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_f),
@@ -279,8 +278,7 @@ class CBFSSM(BaseModel):
         kl_z_f = tf.reduce_sum(tf.contrib.distributions.kl_divergence(zeta_dist, zeta_prior))
 
         # KL div regularizer z_b
-        k_prior = self.kern_b.K(self.zeta_pos_b, self.zeta_pos_b)
-        scale_prior = tf.tile(tf.expand_dims(tf.cholesky(k_prior), 0), [dim_x - dim_y, 1, 1])
+        scale_prior = tf.tile(tf.expand_dims(self.Lm_b, 0), [dim_x - dim_y, 1, 1])
         zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
             loc=tf.zeros((dim_x - dim_y, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
         zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_b),
