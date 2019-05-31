@@ -50,27 +50,29 @@ class BaseDS:
         self.print_stats()
 
     @staticmethod
-    def rnn_batches(x, length, stride, pad_val):
-        """assumes x has shape [experiments, time-samples, dimension)"""
+    def rnn_batches(x, length, stride, _):
+        """Split the data x into batches of length every stride.
+
+        assumes x has shape [experiments, time-samples, dimension).
+        """
+        assert x.ndim == 3, "data must be shaped as [experiments x time x dimension]"
 
         def rnn_batches_ex(x_):
             num_points, dim = x_.shape
-            pad_len = (num_points - length) % stride
-            if pad_len > 0:
-                pad_len = stride - pad_len
-                pad = np.asarray([[pad_val] * dim for _ in range(pad_len)])
-                x_pad = np.concatenate((x_, pad))
-            else:
-                x_pad = x_
-            return np.asarray([x_pad[i:i + length, :] for i in range(0, x_pad.shape[0] - length + 1, stride)])
+            assert num_points >= length, "Sequence length must be shorter than data."
+
+            data_batch = [x_[i:i + length, :]
+                          for i in range(0, num_points - length + 1, stride)]
+
+            # Make sure last data points are contained in a batch
+            remainder = (num_points - length) % stride
+            if remainder > 0:
+                data_batch.append(x_[-length:, :])
+
+            return np.stack(data_batch, axis=0)
 
         batches = [rnn_batches_ex(ex) for ex in x]
-        _, s0, s1 = batches[0].shape
-        res = np.empty((0, s0, s1))
-        for batch in batches:
-            res = np.concatenate((res, batch))
-
-        return res
+        return np.concatenate(batches, axis=0)
 
     def print_stats(self):
         print('Dataset Stats:')
