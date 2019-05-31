@@ -3,26 +3,7 @@ import numpy as np
 
 
 __all__ = ["condition_diag_gaussian_on_diag_gmm", "compute_gmm_moments",
-           "sample_from_multivariate_gaussian", "compute_gmm_moments_diag",
-           "batch_diag", "batch_diag_part"]
-
-
-def batch_diag_part(matrix, parallel_iterations=1):
-    """Apply tf.diag_part across batch to last two dimensions."""
-    orig_shape = matrix.shape.as_list()
-    matrix_reshaped = tf.reshape(matrix, [-1] + orig_shape[-2:])
-    diag = tf.map_fn(tf.diag_part, matrix_reshaped,
-                     parallel_iterations=parallel_iterations)
-    return tf.reshape(diag, [-1] + orig_shape[1:-1])
-
-
-def batch_diag(matrix, parallel_iterations=1):
-    """Apply tf.diag across batch to last dimension."""
-    orig_shape = matrix.shape.as_list()
-    matrix_reshaped = tf.reshape(matrix, [-1] + orig_shape[-1:])
-    full_matrix = tf.map_fn(tf.diag, matrix_reshaped,
-                            parallel_iterations=parallel_iterations)
-    return tf.reshape(full_matrix, [-1] + orig_shape[1:] + orig_shape[-1:])
+           "sample_from_multivariate_gaussian", "compute_gmm_moments_diag"]
 
 
 def condition_diag_gaussian_on_diag_gmm(mean, var, gmm_means, gmm_vars,
@@ -141,8 +122,7 @@ def compute_gmm_moments(gmm_means, gmm_variances, gmm_weights, jitter=None,
         gmm_variances += jitter
     average_variance = tf.reduce_sum(gmm_variances * weights, axis=-2)
     # Convert to diagonal matrix
-    average_covariance = batch_diag(average_variance,
-                                    parallel_iterations=parallel_iterations)
+    average_covariance = tf.matrix_diag(average_variance)
 
     covariance = average_covariance + gmm_means_covar - gmm_mean_covariance
 

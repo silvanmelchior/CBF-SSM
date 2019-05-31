@@ -196,7 +196,7 @@ def test_diag_moments():
 
     with tf.Graph().as_default():
         mean, var = compute_gmm_moments(gmm_means, gmm_variances, gmm.weights)
-        var_diag_part = batch_diag_part(var)
+        var_diag_part = tf.matrix_diag_part(var)
         diag_mean, diag_var = compute_gmm_moments_diag(gmm_means, gmm_variances, gmm.weights)
         with tf.Session() as session:
             mean, var, diag_mean, diag_var = session.run([mean, var_diag_part, diag_mean, diag_var])
