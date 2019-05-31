@@ -1,14 +1,16 @@
 import numpy as np
 import tensorflow as tf
 from cbfssm.model.tf_transform import backward, forward
-from cbfssm.model.gp_tf import RBF, conditional
+from cbfssm.model.gp_tf import RBF, conditional, cast_cholesky
 from cbfssm.model.base_model import BaseModel
+
+import functools
 
 
 class CBFSSM(BaseModel):
 
-    def __init__(self, config):
-        super(CBFSSM, self).__init__(config)
+    def __init__(self, config, dtype=tf.float32):
+        super(CBFSSM, self).__init__(config, dtype=dtype)
 
     def _build_graph(self):
         with self.graph.as_default():
@@ -28,31 +30,37 @@ class CBFSSM(BaseModel):
 
         self.zeta_pos_f = tf.Variable(np.random.uniform(low=-self.config['zeta_pos'],
                                                         high=self.config['zeta_pos'],
-                                                        size=(ind_pnt_num, dim_x + dim_u)))
+                                                        size=(ind_pnt_num, dim_x + dim_u)),
+                                      dtype=self.dtype)
         self.zeta_pos_b = tf.Variable(np.random.uniform(low=-self.config['zeta_pos'],
                                                         high=self.config['zeta_pos'],
-                                                        size=(ind_pnt_num, dim_x + dim_u)))
-        self.zeta_mean_f = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x))
-        self.zeta_mean_b = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x - dim_y))
-        zeta_var_unc_f = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x))))
+                                                        size=(ind_pnt_num, dim_x + dim_u)),
+                                      dtype=self.dtype)
+        self.zeta_mean_f = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x), dtype=self.dtype)
+        self.zeta_mean_b = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x - dim_y), dtype=self.dtype)
+        zeta_var_unc_f = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x))), dtype=self.dtype)
         self.zeta_var_f = forward(zeta_var_unc_f)
-        zeta_var_unc_b = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x - dim_y))))
+        zeta_var_unc_b = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x - dim_y))), dtype=self.dtype)
         self.zeta_var_b = forward(zeta_var_unc_b)
 
-        self.var_x_unc = tf.Variable(backward(self.config['var_x']))
+        self.var_x_unc = tf.Variable(backward(self.config['var_x']), dtype=self.dtype)
         self.var_x = forward(self.var_x_unc)
-        self.var_y_unc = tf.Variable(backward(self.config['var_y']))
+        self.var_y_unc = tf.Variable(backward(self.config['var_y']), dtype=self.dtype)
         self.var_y = forward(self.var_y_unc)
 
-        self.kern_f = RBF(self.config['gp_var'],
-                          np.asarray([self.config['gp_len']] * (dim_x + dim_u)))
-        self.kern_b = RBF(self.config['gp_var'],
-                          np.asarray([self.config['gp_len']] * (dim_x + dim_u)))
+        np_dtype = self.dtype.as_numpy_dtype()
 
-        Kmm_f = self.kern_f.K(self.zeta_pos_f)
-        self.Lm_f = tf.cholesky(Kmm_f)
-        Kmm_b = self.kern_f.K(self.zeta_pos_b)
-        self.Lm_b = tf.cholesky(Kmm_b)
+        self.kern_f = RBF(self.config['gp_var'],
+                          np.asarray([self.config['gp_len']] * (dim_x + dim_u), dtype=np_dtype),
+                          dtype=self.dtype)
+        self.kern_b = RBF(self.config['gp_var'],
+                          np.asarray([self.config['gp_len']] * (dim_x + dim_u), dtype=np_dtype),
+                          dtype=self.dtype)
+
+        Kmm_f = self.kern_f.K(self.zeta_pos_f) + tf.eye(ind_pnt_num, dtype=self.dtype) * 1e-8
+        self.Lm_f = cast_cholesky(Kmm_f)
+        Kmm_b = self.kern_b.K(self.zeta_pos_b) + tf.eye(ind_pnt_num, dtype=self.dtype) * 1e-8
+        self.Lm_b = cast_cholesky(Kmm_b)
 
         self.var_dict = {'process noise': self.var_x,
                          'observation noise': self.var_y,
@@ -70,13 +78,13 @@ class CBFSSM(BaseModel):
     def _io_arrays(self):
         samples = self.config['samples']
 
-        self.u_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        self.u_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                       clear_after_read=False)
         u_dub = tf.transpose(self.sample_in, perm=[1, 0, 2])
         u_dub = tf.tile(tf.expand_dims(u_dub, axis=2), [1, 1, samples, 1])
         self.u_array = self.u_array.unstack(u_dub)
 
-        self.y_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        self.y_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                       clear_after_read=False)
         y_dub = tf.transpose(self.sample_out, perm=[1, 0, 2])
         y_dub = tf.tile(tf.expand_dims(y_dub, axis=2), [1, 1, samples, 1])
@@ -85,9 +93,9 @@ class CBFSSM(BaseModel):
     def _backward(self):
         samples = self.config['samples']
 
-        prob_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        prob_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                     clear_after_read=False)
-        y2_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        y2_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                   clear_after_read=False)
 
         y2_array, prob_array = self._backward_run(y2_array, prob_array, 0)
@@ -104,10 +112,10 @@ class CBFSSM(BaseModel):
         dim_x = self.config['dim_x']
         dim_y = self.config['ds'].dim_y
 
-        y_init = tf.zeros((self.batch_tf, samples, dim_x - dim_y), dtype=tf.float64)
+        y_init = tf.zeros((self.batch_tf, samples, dim_x - dim_y), dtype=self.dtype)
         u_final, y_final, y2_final, p_final, t_final, h_final = tf.while_loop(
             lambda u, y, y2, p, t, h: t >= 0,
-            lambda u, y, y2, p, t, h: self._backward_body(u, y, y2, p, t, h, run),
+            functools.partial(self._backward_body, run=run),
             [self.u_array, self.y_array, y2_array, prob_array, self.seq_len_tf - 1, y_init],
             parallel_iterations=1)
         return y2_final, p_final
@@ -132,7 +140,7 @@ class CBFSSM(BaseModel):
         u_t = u.read(t)
         y_t = y.read(t)
         hidden = tf.cond(resample_cond,
-                         lambda: tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=tf.float64),
+                         lambda: tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype),
                                          [1, 1, dim_out]) * tf.sqrt(self.var_x[:dim_out]),
                          lambda: h)
         in_t = tf.concat((hidden, u_t, y_t), axis=2)
@@ -152,7 +160,7 @@ class CBFSSM(BaseModel):
         # sampling
         # p_next = tfp.distributions.MultivariateNormalDiag(fmean, fvar)
         # out = p_next.sample(1).squeeze(0)
-        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=tf.float64), [1, 1, dim_out])
+        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype), [1, 1, dim_out])
         out = tf.add(fmean, tf.multiply(eps, tf.sqrt(fvar)))
         y2_out = tf.cond(write_cond, lambda: y2.write(t, out), lambda: y2)
 
@@ -166,15 +174,15 @@ class CBFSSM(BaseModel):
     def _forward(self):
         dim_y = self.config['ds'].dim_y
 
-        prob_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf - 1,
+        prob_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf - 1,
                                     clear_after_read=False)
 
-        x_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        x_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                  clear_after_read=False)
         x_0 = self.y_tilde[:, 0, :, :]
         x_array = x_array.write(0, x_0)
 
-        y_tilde_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        y_tilde_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                        clear_after_read=False)
         y_dub = tf.transpose(self.y_tilde, perm=[1, 0, 2, 3])
         y_tilde_array = y_tilde_array.unstack(y_dub)
@@ -215,7 +223,7 @@ class CBFSSM(BaseModel):
         fvar = fvar + self.var_x
 
         # sampling randomness
-        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=tf.float64), [1, 1, dim_x])
+        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype), [1, 1, dim_x])
 
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
@@ -225,7 +233,7 @@ class CBFSSM(BaseModel):
         s = var_y_tiled + fvar
         k = fvar * tf.reciprocal(s)
         mu = fmean + k * y_diff
-        sig = tf.ones((self.batch_tf, samples, dim_x), dtype=tf.float64) - k
+        sig = tf.ones((self.batch_tf, samples, dim_x), dtype=self.dtype) - k
         sig = tf.square(sig) * fvar + tf.square(k) * var_y_tiled
         x_t = tf.add(mu, tf.multiply(eps, tf.sqrt(sig)))
 
@@ -240,7 +248,7 @@ class CBFSSM(BaseModel):
         # KL div regularizer x
         kl_reg = tf.log(fvar) - tf.log(sig) + (sig + tf.pow(mu - fmean, 2.)) / fvar - 1.
         kl_reg = tf.reduce_sum(kl_reg) * tf.cond(
-            do_cond, lambda: tf.constant(0.5, dtype=tf.float64), lambda: tf.constant(0., dtype=tf.float64))
+            do_cond, lambda: tf.constant(0.5, dtype=self.dtype), lambda: tf.constant(0., dtype=self.dtype))
         p_out = p.write(t, kl_reg)
 
         return u, x_out, y, p_out, t + 1
@@ -265,7 +273,7 @@ class CBFSSM(BaseModel):
         k_prior = self.kern_f.K(self.zeta_pos_f, self.zeta_pos_f)
         scale_prior = tf.tile(tf.expand_dims(tf.cholesky(k_prior), 0), [dim_x, 1, 1])
         zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
-            loc=tf.zeros((dim_x, ind_pnt_num), dtype=tf.float64), scale_tril=scale_prior)
+            loc=tf.zeros((dim_x, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
         zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_f),
                                                                     scale_diag=tf.sqrt(tf.transpose(self.zeta_var_f)))
         kl_z_f = tf.reduce_sum(tf.contrib.distributions.kl_divergence(zeta_dist, zeta_prior))
@@ -274,7 +282,7 @@ class CBFSSM(BaseModel):
         k_prior = self.kern_b.K(self.zeta_pos_b, self.zeta_pos_b)
         scale_prior = tf.tile(tf.expand_dims(tf.cholesky(k_prior), 0), [dim_x - dim_y, 1, 1])
         zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
-            loc=tf.zeros((dim_x - dim_y, ind_pnt_num), dtype=tf.float64), scale_tril=scale_prior)
+            loc=tf.zeros((dim_x - dim_y, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
         zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_b),
                                                                     scale_diag=tf.sqrt(tf.transpose(self.zeta_var_b)))
         kl_z_b = tf.reduce_sum(tf.contrib.distributions.kl_divergence(zeta_dist, zeta_prior))

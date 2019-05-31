@@ -5,8 +5,9 @@ import tensorflow as tf
 
 class BaseModel:
 
-    def __init__(self, config):
+    def __init__(self, config, dtype=tf.float32):
         self.config = config
+        self.dtype = dtype
         self.graph = tf.Graph()
         self._build_ds_pipeline()
         self._build_graph()
@@ -16,8 +17,8 @@ class BaseModel:
         dim_y = self.config['ds'].dim_y
 
         with self.graph.as_default():
-            self.data_in = tf.placeholder(tf.float64, shape=[None, None, dim_u])  # [ds_size, seq_len, dim]
-            self.data_out = tf.placeholder(tf.float64, shape=[None, None, dim_y])  # [ds_size, seq_len, dim]
+            self.data_in = tf.placeholder(self.dtype, shape=[None, None, dim_u])  # [ds_size, seq_len, dim]
+            self.data_out = tf.placeholder(self.dtype, shape=[None, None, dim_y])  # [ds_size, seq_len, dim]
             self.repeats = tf.placeholder(tf.int64)
             self.condition = tf.placeholder(tf.bool)
             dataset = tf.data.Dataset.from_tensor_slices((self.data_in, self.data_out))

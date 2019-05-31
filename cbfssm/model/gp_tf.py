@@ -17,15 +17,15 @@ from cbfssm.model.tf_transform import forward, backward
 
 class RBF:
 
-    def __init__(self, variance, lengthscales):
+    def __init__(self, variance, lengthscales, dtype=tf.float32):
 
         with tf.name_scope('kern'):
             self.variance_unc = tf.Variable(backward(variance),
-                                            dtype=tf.float64)
+                                            dtype=dtype)
             self.variance = forward(self.variance_unc)
 
             self.lengthscales_unc = tf.Variable(backward(lengthscales),
-                                                dtype=tf.float64)
+                                                dtype=dtype)
             self.lengthscales = forward(self.lengthscales_unc)
 
     def square_dist(self, X, X2):
@@ -47,15 +47,26 @@ class RBF:
         return self.variance * tf.exp(-self.square_dist(X, X2) / 2)
 
 
-def conditional(Xnew, X, kern, f, q_sqrt, Lm=None):
+def cast_cholesky(mat, jitter=1e-8):
+    dtype = mat.dtype
+    jitter = tf.eye(mat.shape.as_list()[0], dtype=tf.float64) * jitter
+    if dtype == tf.float64:
+        return tf.cholesky(mat + jitter)
+    else:
+        mat = tf.cast(mat, tf.float64)
+        chol = tf.cholesky(mat + jitter)
+        return tf.cast(chol, dtype)
 
+
+def conditional(Xnew, X, kern, f, q_sqrt, Lm=None):
     # compute kernel stuff
     num_data = tf.shape(X)[0]
     num_func = tf.shape(f)[1]
     Kmn = kern.K(X, Xnew)
     if Lm is None:
-        Kmm = kern.K(X) + tf.eye(num_data, dtype=tf.float64) * 1e-8
-        Lm = tf.cholesky(Kmm)
+        Kmm = kern.K(X) + tf.eye(num_data, X.dtype) * 1e-8
+        Lm = cast_cholesky(Kmm)
+
 
     # Compute the projection matrix A
     A = tf.matrix_triangular_solve(Lm, Kmn, lower=True)
