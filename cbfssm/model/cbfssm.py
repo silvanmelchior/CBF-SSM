@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from cbfssm.model.tf_transform import backward, forward
-from cbfssm.model.gp_tf import RBF, conditional, cast_cholesky
+from cbfssm.model.gp_tf import GPModel
 from cbfssm.model.base_model import BaseModel
 
 import functools
@@ -26,54 +26,45 @@ class CBFSSM(BaseModel):
         dim_u = self.config['ds'].dim_u
         dim_x = self.config['dim_x']
         dim_y = self.config['ds'].dim_y
-        ind_pnt_num = self.config['ind_pnt_num']
 
-        self.zeta_pos_f = tf.Variable(np.random.uniform(low=-self.config['zeta_pos'],
-                                                        high=self.config['zeta_pos'],
-                                                        size=(ind_pnt_num, dim_x + dim_u)),
-                                      dtype=self.dtype)
-        self.zeta_pos_b = tf.Variable(np.random.uniform(low=-self.config['zeta_pos'],
-                                                        high=self.config['zeta_pos'],
-                                                        size=(ind_pnt_num, dim_x + dim_u)),
-                                      dtype=self.dtype)
-        self.zeta_mean_f = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x), dtype=self.dtype)
-        self.zeta_mean_b = tf.Variable(self.config['zeta_mean'] * np.random.rand(ind_pnt_num, dim_x - dim_y), dtype=self.dtype)
-        zeta_var_unc_f = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x))), dtype=self.dtype)
-        self.zeta_var_f = forward(zeta_var_unc_f)
-        zeta_var_unc_b = tf.Variable(backward(self.config['zeta_var'] * np.ones((ind_pnt_num, dim_x - dim_y))), dtype=self.dtype)
-        self.zeta_var_b = forward(zeta_var_unc_b)
+        self.gp_f = GPModel(in_dim=dim_x + dim_u,
+                            out_dim=dim_x,
+                            num_points=self.config['ind_pnt_num'],
+                            gp_var=self.config['gp_var'],
+                            gp_len=self.config['gp_len'],
+                            zeta_mean=self.config['zeta_mean'],
+                            zeta_pos=self.config['zeta_pos'],
+                            zeta_var=self.config['zeta_var'],
+                            dtype=self.dtype)
 
+        self.gp_b = GPModel(in_dim=dim_x + dim_u,
+                            out_dim=dim_x - dim_y,
+                            num_points=self.config['ind_pnt_num'],
+                            gp_var=self.config['gp_var'],
+                            gp_len=self.config['gp_len'],
+                            zeta_mean=self.config['zeta_mean'],
+                            zeta_pos=self.config['zeta_pos'],
+                            zeta_var=self.config['zeta_var'],
+                            dtype=self.dtype)
+
+        # Observation and process noise
         self.var_x_unc = tf.Variable(backward(self.config['var_x']), dtype=self.dtype)
         self.var_x = forward(self.var_x_unc)
         self.var_y_unc = tf.Variable(backward(self.config['var_y']), dtype=self.dtype)
         self.var_y = forward(self.var_y_unc)
 
-        np_dtype = self.dtype.as_numpy_dtype()
-
-        self.kern_f = RBF(self.config['gp_var'],
-                          np.asarray([self.config['gp_len']] * (dim_x + dim_u), dtype=np_dtype),
-                          dtype=self.dtype)
-        self.kern_b = RBF(self.config['gp_var'],
-                          np.asarray([self.config['gp_len']] * (dim_x + dim_u), dtype=np_dtype),
-                          dtype=self.dtype)
-
-        Kmm_f = self.kern_f.K(self.zeta_pos_f) + tf.eye(ind_pnt_num, dtype=self.dtype) * 1e-8
-        self.Lm_f = cast_cholesky(Kmm_f)
-        Kmm_b = self.kern_b.K(self.zeta_pos_b) + tf.eye(ind_pnt_num, dtype=self.dtype) * 1e-8
-        self.Lm_b = cast_cholesky(Kmm_b)
-
         self.var_dict = {'process noise': self.var_x,
                          'observation noise': self.var_y,
-                         'kernel lengthscales f': self.kern_f.lengthscales,
-                         'kernel variance f': self.kern_f.variance,
-                         'IP pos f': self.zeta_pos_f,
-                         'IP mean f': self.zeta_mean_f,
-                         'IP var f': self.zeta_var_f,
-                         'kernel lengthscales b': self.kern_b.lengthscales,
-                         'kernel variance b': self.kern_b.variance,
-                         'IP pos b': self.zeta_pos_b,
-                         'IP mean b': self.zeta_mean_b,
-                         'IP var b': self.zeta_var_b}
+                         'kernel lengthscales f': self.gp_f.kern.lengthscales,
+                         'kernel variance f': self.gp_f.kern.variance,
+                         'IP pos f': self.gp_f.zeta_pos,
+                         'IP mean f': self.gp_f.zeta_mean,
+                         'IP var f': self.gp_f.zeta_var,
+                         'kernel lengthscales b': self.gp_b.kern.lengthscales,
+                         'kernel variance b': self.gp_b.kern.variance,
+                         'IP pos b': self.gp_b.zeta_pos,
+                         'IP mean b': self.gp_b.zeta_mean,
+                         'IP var b': self.gp_b.zeta_var}
 
     def _io_arrays(self):
         samples = self.config['samples']
@@ -147,10 +138,7 @@ class CBFSSM(BaseModel):
 
         # gp
         in_t_reshape = tf.reshape(in_t, (self.batch_tf * samples, dim_x + dim_u))
-
-        fmean, fvar = conditional(in_t_reshape, self.zeta_pos_b, self.kern_b,
-                                  self.zeta_mean_b, tf.sqrt(self.zeta_var_b),
-                                  Lm=self.Lm_b)
+        fmean, fvar = self.gp_b.predict(in_t_reshape)
 
         fmean = tf.reshape(fmean, (self.batch_tf, samples, dim_out))
         fvar = tf.reshape(fvar, (self.batch_tf, samples, dim_out))
@@ -212,10 +200,7 @@ class CBFSSM(BaseModel):
 
         # gp
         in_t_reshape = tf.reshape(in_t, (self.batch_tf * samples, dim_u + dim_x))
-
-        fmean, fvar = conditional(in_t_reshape, self.zeta_pos_f, self.kern_f,
-                                  self.zeta_mean_f, tf.sqrt(self.zeta_var_f),
-                                  Lm=self.Lm_f)
+        fmean, fvar = self.gp_f.predict(in_t_reshape)
 
         fmean = tf.reshape(fmean, (self.batch_tf, samples, dim_x))
         fvar = tf.reshape(fvar, (self.batch_tf, samples, dim_x))
@@ -254,9 +239,7 @@ class CBFSSM(BaseModel):
         return u, x_out, y, p_out, t + 1
 
     def _build_loss(self):
-        dim_x = self.config['dim_x']
         dim_y = self.config['ds'].dim_y
-        ind_pnt_num = self.config['ind_pnt_num']
         samples = self.config['samples']
         loss_factors = self.config['loss_factors']
 
@@ -269,27 +252,14 @@ class CBFSSM(BaseModel):
         log_probs = y_dist.log_prob(obs)
         loglik = tf.reduce_sum(log_probs)
 
-        # KL div regularizer z_f
-        scale_prior = tf.tile(tf.expand_dims(self.Lm_f, 0), [dim_x, 1, 1])
-        zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
-            loc=tf.zeros((dim_x, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
-        zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_f),
-                                                                    scale_diag=tf.sqrt(tf.transpose(self.zeta_var_f)))
-        kl_z_f = tf.reduce_sum(tf.contrib.distributions.kl_divergence(zeta_dist, zeta_prior))
+        # KL div regularizer for z_f and z_b
+        kl_z_f = self.gp_f.prior_kl()
+        kl_z_b = self.gp_b.prior_kl()
 
-        # KL div regularizer z_b
-        scale_prior = tf.tile(tf.expand_dims(self.Lm_b, 0), [dim_x - dim_y, 1, 1])
-        zeta_prior = tf.contrib.distributions.MultivariateNormalTriL(
-            loc=tf.zeros((dim_x - dim_y, ind_pnt_num), dtype=self.dtype), scale_tril=scale_prior)
-        zeta_dist = tf.contrib.distributions.MultivariateNormalDiag(loc=tf.transpose(self.zeta_mean_b),
-                                                                    scale_diag=tf.sqrt(tf.transpose(self.zeta_var_b)))
-        kl_z_b = tf.reduce_sum(tf.contrib.distributions.kl_divergence(zeta_dist, zeta_prior))
-
-        # loss
-        elbo = loglik * loss_factors[0]\
-            - self.kl_x * loss_factors[0]\
-            + self.entropy * loss_factors[1]\
-            - kl_z_f - kl_z_b
+        elbo = (loglik * loss_factors[0]
+                - self.kl_x * loss_factors[0]
+                + self.entropy * loss_factors[1]
+                - kl_z_f - kl_z_b)
         self.loss = tf.negative(elbo)
 
     def _build_prediction(self):
