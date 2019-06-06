@@ -9,7 +9,7 @@ import functools
 
 class CBFSSM(BaseModel):
 
-    def __init__(self, config, dtype=tf.float32):
+    def __init__(self, config, dtype=tf.float64):
         super(CBFSSM, self).__init__(config, dtype=dtype)
 
     def _build_graph(self):
@@ -154,7 +154,7 @@ class CBFSSM(BaseModel):
 
         # entropy regularizer
         c = 2. * np.pi * np.e
-        entropy = 0.5 * tf.reduce_sum(tf.log(c * fvar))
+        entropy = 0.5 * tf.reduce_sum(tf.log(c) + tf.log(fvar))
         p_out = tf.cond(write_cond, lambda: p.write(t, entropy), lambda: p)
 
         return u, y, y2_out, p_out, t - 1, out

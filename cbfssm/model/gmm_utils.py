@@ -49,7 +49,8 @@ def condition_diag_gaussian_on_diag_gmm(mean, var, gmm_means, gmm_vars,
     gmm_var_tile = tf.tile(tf.expand_dims(gmm_vars, -3), tile_shape)
 
     # Intermediate results
-    var_sum_inv = 1. / (var_tile + gmm_var_tile)
+    var_sum_inv = tf.reciprocal(var_tile + gmm_var_tile)
+    var_sum_inv = tf.check_numerics(var_sum_inv, "variance went zero")
     var_product = var_tile * gmm_var_tile
 
     new_gmm_vars = var_product * var_sum_inv
@@ -73,25 +74,20 @@ def condition_diag_gaussian_on_diag_gmm(mean, var, gmm_means, gmm_vars,
     return new_gmm_means, new_gmm_vars, new_weights
 
 
-def compute_gmm_moments(gmm_means, gmm_variances, gmm_weights, jitter=None,
-                        parallel_iterations=2):
+def compute_gmm_moments(gmm_means, gmm_variances, gmm_weights):
     """
     Return the mean and covariance of a GMM distribution.
 
     Parameters
     ----------
-    mean : tf.Tensor
+    gmm_means : tf.Tensor
         A vector where the last three dimensions (N x M x d) represent
         the represent for each prior Gaussian N the M x d means of the
         resulting mixture distribution
-    var : tf.Tensor
+    gmm_variances : tf.Tensor
         As mean, but with variances
-    weights : tf.Tensor
+    gmm_weights : tf.Tensor
         The last (N x M) components represent the weights of the mixtures.
-    jitter : float, optional
-        An optional jitter added to the diagonal entry of the covariance.
-    parallel_iterations : inf, optional
-        How many parallel iterations to conduct in map_fn.
 
     Returns
     -------
@@ -118,13 +114,10 @@ def compute_gmm_moments(gmm_means, gmm_variances, gmm_weights, jitter=None,
     gmm_mean_covariance = tf.matmul(gmm_mean_matrix, gmm_mean_matrix, transpose_b=True)
 
     # Compute the average cluster variance
-    if jitter is not None:
-        gmm_variances += jitter
     average_variance = tf.reduce_sum(gmm_variances * weights, axis=-2)
-    # Convert to diagonal matrix
-    average_covariance = tf.matrix_diag(average_variance)
 
-    covariance = average_covariance + gmm_means_covar - gmm_mean_covariance
+    covariance = gmm_means_covar - gmm_mean_covariance
+    covariance = tf.matrix_set_diag(tf.matrix_diag_part(covariance) + average_variance)
 
     return mean, covariance
 
@@ -135,13 +128,13 @@ def compute_gmm_moments_diag(gmm_means, gmm_variances, gmm_weights):
 
     Parameters
     ----------
-    mean : tf.Tensor
+    gmm_means : tf.Tensor
         A vector where the last three dimensions (N x M x d) represent
         the represent for each prior Gaussian N the M x d means of the
         resulting mixture distribution
-    var : tf.Tensor
+    gmm_variances : tf.Tensor
         As mean, but with variances
-    weights : tf.Tensor
+    gmm_weights : tf.Tensor
         The last (N x M) components represent the weights of the mixtures.
 
     Returns
@@ -190,8 +183,8 @@ def sample_from_multivariate_gaussian(mean, covariance, eps=None, float64=False)
     samples : tf.Tensor
         The last (N x d) dimensions represent a sample from the corresponding Gaussian.
     """
-    if float64:
-        orig_dtype = covariance.dtype
+    orig_dtype = covariance.dtype
+    if float64 and orig_dtype != tf.float64:
         covariance = tf.cast(covariance, tf.float64)
         cholesky = tf.cholesky(covariance)
         cholesky = tf.cast(cholesky, orig_dtype)
