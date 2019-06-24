@@ -7,6 +7,8 @@ from cbfssm.model.tf_transform import backward, forward
 from cbfssm.model.gp_tf import RBF, conditional
 
 
+# TODO: divide by samples in ELBO, add KL-div x_1, add fixed sample dist for y_T (as in cbfssm-model)
+
 class Voliro(BaseModel):
 
     def __init__(self, config):

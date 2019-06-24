@@ -28,7 +28,7 @@ model_config = {
     'ind_pnt_num': 100,
     'samples': 20,
     'learning_rate': 0.05,
-    'loss_factors': np.asarray([0.3, 0.]),
+    'loss_factors': np.asarray([6., 0.]),
     'k_factor': 50.,
     'recog_len': 16,
     # variables init state

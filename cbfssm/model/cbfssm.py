@@ -132,7 +132,7 @@ class CBFSSM(BaseModel):
         y_t = y.read(t)
         hidden = tf.cond(resample_cond,
                          lambda: tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype),
-                                         [1, 1, dim_out]) * tf.sqrt(self.var_x[:dim_out]),
+                                         [1, 1, dim_out]),
                          lambda: h)
         in_t = tf.concat((hidden, u_t, y_t), axis=2)
 
@@ -153,7 +153,7 @@ class CBFSSM(BaseModel):
         y2_out = tf.cond(write_cond, lambda: y2.write(t, out), lambda: y2)
 
         # entropy regularizer
-        c = 2. * np.pi * np.e
+        c = tf.constant(2. * np.pi * np.e, dtype=self.dtype)
         entropy = 0.5 * tf.reduce_sum(tf.log(c) + tf.log(fvar))
         p_out = tf.cond(write_cond, lambda: p.write(t, entropy), lambda: p)
 
@@ -167,8 +167,8 @@ class CBFSSM(BaseModel):
 
         x_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                  clear_after_read=False)
-        x_0 = self.y_tilde[:, 0, :, :]
-        x_array = x_array.write(0, x_0)
+        self.x_0 = self.y_tilde[:, 0, :, :]
+        x_array = x_array.write(0, self.x_0)
 
         y_tilde_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                        clear_after_read=False)
@@ -256,10 +256,18 @@ class CBFSSM(BaseModel):
         kl_z_f = self.gp_f.prior_kl()
         kl_z_b = self.gp_b.prior_kl()
 
-        elbo = (loglik * loss_factors[0]
-                - self.kl_x * loss_factors[0]
-                + self.entropy * loss_factors[1]
-                - kl_z_f - kl_z_b)
+        # KL div regularizer for x_1
+        kl_x1 = tf.contrib.distributions.MultivariateNormalDiag(
+            loc=tf.zeros_like(self.x_0),
+            scale_diag=tf.ones_like(self.x_0)).log_prob(self.x_0)
+        kl_x1 = tf.reduce_sum(kl_x1)
+
+        divisor = tf.reciprocal(tf.constant(samples, dtype=self.dtype))
+        elbo = (loglik * loss_factors[0] * divisor
+                - self.kl_x * loss_factors[0] * divisor
+                + self.entropy * loss_factors[1] * divisor
+                - kl_z_f - kl_z_b
+                + kl_x1 * divisor)
         self.loss = tf.negative(elbo)
 
     def _build_prediction(self):

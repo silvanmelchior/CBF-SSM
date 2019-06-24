@@ -5,6 +5,8 @@ from cbfssm.model.gp_tf import RBF, conditional
 from cbfssm.model.base_model import BaseModel
 
 
+# TODO: adapt changes made in cbfssm (e.g. x1 kl-div)
+
 class CBFSSMHALF(BaseModel):
 
     def __init__(self, config):

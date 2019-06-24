@@ -30,7 +30,7 @@ for phase in range(2):
         'ind_pnt_num': 100,
         'samples': 50,
         'learning_rate': 0.01,
-        'loss_factors': np.asarray([0.4, 0.04 * (phase == 1)]),
+        'loss_factors': np.asarray([20., 2. * (phase == 1)]),
         'k_factor': 1.,
         'recog_len': 50,
         # variables init state

@@ -9,11 +9,11 @@ from cbfssm.model.cbfssm import CBFSSM
 
 
 # Choose Tasks
-datasets = [(Actuator, 'actuator', 0.01,  100),
-            (Ballbeam, 'ballbeam', 0.001, 10),
-            (Drive,    'drive',    0.01,  50),
-            (Dryer,    'dryer',    0.003, 100),
-            (Furnace,  'furnace',  0.003, 100)]
+datasets = [(Actuator, 'actuator', 0.5,  100),
+            (Ballbeam, 'ballbeam', 0.05, 10),
+            (Drive,    'drive',    0.5,  50),
+            (Dryer,    'dryer',    0.15, 100),
+            (Furnace,  'furnace',  0.15, 100)]
 tasks = [int(sys.argv[1])] if len(sys.argv) > 1 else range(len(datasets))
 
 
