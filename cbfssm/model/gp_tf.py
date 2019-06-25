@@ -19,7 +19,7 @@ from cbfssm.model.tf_transform import forward, backward
 
 class RBF:
 
-    def __init__(self, variance, lengthscales, dtype=tf.float32):
+    def __init__(self, variance, lengthscales, dtype=tf.float64):
 
         with tf.name_scope('kern'):
             self.variance_unc = tf.Variable(backward(variance),
@@ -67,12 +67,10 @@ def cast_cholesky(mat, jitter=1e-8):
 
 def conditional(Xnew, X, kern, f, q_sqrt, Lm=None):
     # compute kernel stuff
-    num_data = tf.shape(X)[0]
     num_func = tf.shape(f)[1]
     Kmn = kern.K(X, Xnew)
     if Lm is None:
-        Kmm = kern.K(X) + tf.eye(num_data, X.dtype) * 1e-8
-        Lm = cast_cholesky(Kmm)
+        Lm = cast_cholesky(kern.K(X), jitter=1e-8)
 
     # Compute the projection matrix A
     A = tf.matrix_triangular_solve(Lm, Kmn, lower=True)
