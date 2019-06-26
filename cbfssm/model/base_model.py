@@ -5,7 +5,7 @@ import tensorflow as tf
 
 class BaseModel:
 
-    def __init__(self, config, dtype=tf.float32):
+    def __init__(self, config, dtype=tf.float64):
         self.config = config
         self.dtype = dtype
         self.graph = tf.Graph()
