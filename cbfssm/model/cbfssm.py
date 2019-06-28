@@ -256,18 +256,11 @@ class CBFSSM(BaseModel):
         kl_z_f = self.gp_f.prior_kl()
         kl_z_b = self.gp_b.prior_kl()
 
-        # KL div regularizer for x_1
-        kl_x1 = tf.contrib.distributions.MultivariateNormalDiag(
-            loc=tf.zeros_like(self.x_0),
-            scale_diag=tf.ones_like(self.x_0)).log_prob(self.x_0)
-        kl_x1 = tf.reduce_sum(kl_x1)
-
         divisor = tf.reciprocal(tf.constant(samples, dtype=self.dtype))
         elbo = (loglik * loss_factors[0] * divisor
                 - self.kl_x * loss_factors[0] * divisor
                 + self.entropy * loss_factors[1] * divisor
-                - kl_z_f - kl_z_b
-                + kl_x1 * divisor)
+                - kl_z_f - kl_z_b)
         self.loss = tf.negative(elbo)
 
     def _build_prediction(self):
