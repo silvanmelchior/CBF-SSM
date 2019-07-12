@@ -22,7 +22,7 @@ class Quaternion:
 
     @staticmethod
     def invert(a):
-        return a * tf.constant([1., -1., -1., -1.], dtype=tf.float64)
+        return a * tf.constant([1., -1., -1., -1.], dtype=a.dtype)
 
     @staticmethod
     def invert_np(a):
@@ -30,7 +30,7 @@ class Quaternion:
 
     @staticmethod
     def pad_to_quat(a):
-        zeros = tf.zeros_like(a, dtype=tf.float64)
+        zeros = tf.zeros_like(a, dtype=a.dtype)
         return tf.concat((zeros[..., 0:1], a), axis=-1)
 
     @staticmethod

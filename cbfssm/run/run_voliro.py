@@ -24,7 +24,7 @@ model_config = {
     'ind_pnt_num': 20,
     'samples': 20,
     'learning_rate': 0.01,
-    'loglik_factor': np.asarray([64. / seq_len, 0., 0.2 * 20 * 50]),
+    'loglik_factor': np.asarray([20., 0., 0.2 * 20 * 50]),
     'n_beta': [10., 2., 10.],
     'l_beta': [1., 10., 10.],
     # variables init state
