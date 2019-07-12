@@ -2,7 +2,7 @@ import math
 import numpy as np
 import tensorflow as tf
 from cbfssm.model.base_model import BaseModel
-from utils.quaternions import Quaternion
+from cbfssm.utils.quaternions import Quaternion
 from cbfssm.model.tf_transform import backward, forward
 from cbfssm.model.gp_tf import GPModel
 

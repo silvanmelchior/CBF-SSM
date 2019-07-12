@@ -1,8 +1,8 @@
 import numpy as np
-from cbfssm.datasets.dsmanager_ds import RoboMove
-from cbfssm.training.trainer import Trainer
-from cbfssm.outputs.outputs import Outputs
-from cbfssm.model.cbfssm import CBFSSM
+from cbfssm.datasets import RoboMove
+from cbfssm.training import Trainer
+from cbfssm.outputs import Outputs
+from cbfssm.model import CBFSSM
 
 
 #

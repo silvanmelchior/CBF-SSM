@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -19,6 +20,7 @@ class BaseDS:
         self.test_out_batch = np.empty(0)
         self.mean = {'in': np.empty(()), 'out': np.empty(())}
         self.std = {'in': np.empty(()), 'out': np.empty(())}
+        self.data_path = os.path.dirname(__file__) + '/data/'
 
     def normalize_init(self, data_in, data_out):
         assert len(data_in.shape) == 2

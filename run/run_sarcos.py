@@ -1,9 +1,9 @@
 import numpy as np
-from cbfssm.datasets.prssm_ds import Sarcos
-from cbfssm.training.trainer import Trainer
-from cbfssm.outputs.outputs import Outputs
-from cbfssm.outputs.output_summary import OutputSummary
-from cbfssm.model.cbfssm import CBFSSM
+from cbfssm.datasets import Sarcos
+from cbfssm.training import Trainer
+from cbfssm.outputs import Outputs
+from cbfssm.outputs import OutputSummary
+from cbfssm.model import CBFSSM
 
 
 #

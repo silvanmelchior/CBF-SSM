@@ -1,11 +1,11 @@
 import numpy as np
 from cbfssm.datasets.base_ds import BaseDS
-from datasets.prssm.real_world_tasks import SarcosArm
-from datasets.prssm.real_world_tasks import Actuator as ActuatorBuilder
-from datasets.prssm.real_world_tasks import Ballbeam as BallbeamBuilder
-from datasets.prssm.real_world_tasks import Drive as DriveBuilder
-from datasets.prssm.real_world_tasks import Gas_furnace as FurnaceBuilder
-from datasets.prssm.real_world_tasks import Dryer as DryerBuilder
+from cbfssm.datasets.prssm.real_world_tasks import SarcosArm
+from cbfssm.datasets.prssm.real_world_tasks import Actuator as ActuatorBuilder
+from cbfssm.datasets.prssm.real_world_tasks import Ballbeam as BallbeamBuilder
+from cbfssm.datasets.prssm.real_world_tasks import Drive as DriveBuilder
+from cbfssm.datasets.prssm.real_world_tasks import Gas_furnace as FurnaceBuilder
+from cbfssm.datasets.prssm.real_world_tasks import Dryer as DryerBuilder
 
 
 class PRSSMDS(BaseDS):

@@ -13,7 +13,7 @@ import os
 import numpy as np
 import scipy.io
 
-from datasets.prssm.tasks import AutoregTask
+from cbfssm.datasets.prssm.tasks import AutoregTask
 
 
 class RealWorldTask(AutoregTask):

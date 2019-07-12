@@ -1,8 +1,8 @@
 import numpy as np
-from cbfssm.datasets.dsmanager_ds import RoboMove
-from cbfssm.training.trainer import Trainer
-from cbfssm.outputs.outputs_robomove import OutputsRoboMove
-from cbfssm.model.cbfssm import CBFSSM
+from cbfssm.datasets import RoboMove
+from cbfssm.training import Trainer
+from cbfssm.outputs import OutputsRoboMove
+from cbfssm.model import CBFSSM
 
 
 # curriculum learning scheme presented in appendix

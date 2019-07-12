@@ -13,11 +13,11 @@ import abc
 import os
 import numpy as np
 
-from datasets.prssm.data_management import generate_experiment_from_data
-from datasets.prssm.utils import Configurable
-from datasets.prssm.utils import enforce_list
-from datasets.prssm.utils import enforce_2d
-from datasets.prssm.utils import resample
+from cbfssm.datasets.prssm.data_management import generate_experiment_from_data
+from cbfssm.datasets.prssm.utils import Configurable
+from cbfssm.datasets.prssm.utils import enforce_list
+from cbfssm.datasets.prssm.utils import enforce_2d
+from cbfssm.datasets.prssm.utils import resample
 
 """
 The following class is derived from RGP
@@ -31,7 +31,7 @@ class AutoregTask(Configurable):
 
     def __init__(self, datapath=None):
         self.datapath = datapath or os.path.join(os.path.dirname(__file__),
-                                                 '../datasets')
+                                                 '../data')
 
         # These default/empty task parameters are computed when load_data() is
         # called

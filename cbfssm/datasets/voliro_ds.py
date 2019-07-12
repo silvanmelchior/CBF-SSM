@@ -1,6 +1,6 @@
 import numpy as np
 from cbfssm.datasets.base_ds import BaseDS
-from datasets.voliro_ext_ds import VoliroBaseDS
+from cbfssm.datasets.voliro_loader import VoliroBaseDS
 
 
 class VoliroDS(BaseDS):
@@ -13,14 +13,14 @@ class VoliroDS(BaseDS):
         # Load
         mass = 4.04
         inertia = np.asarray([0.078359127, 0.081797886, 0.1533554115])
-        ds1 = VoliroBaseDS("datasets/data/voliro_tilt.mat", 1500, 3800)
+        ds1 = VoliroBaseDS(self.data_path + "voliro_tilt.mat", 1500, 3800)
         time1 = ds1.timesteps[:, None]
         battery1 = ds1.battery[:, None]
         u_data1 = np.concatenate((ds1.pwmup, ds1.tilt, time1), axis=1)
         y_data1 = np.concatenate((ds1.pos, ds1.linvel, ds1.linacc * mass,
                                   ds1.rpy, ds1.wxyz, ds1.angvel, ds1.angacc * inertia), axis=1)
 
-        ds2 = VoliroBaseDS("datasets/data/voliro_flip.mat", 17600, 20172)
+        ds2 = VoliroBaseDS(self.data_path + "voliro_flip.mat", 17600, 20172)
         time2 = ds2.timesteps[:, None]
         battery2 = ds2.battery[:, None]
         u_data2 = np.concatenate((ds2.pwmup, ds2.tilt, time2), axis=1)

@@ -1,5 +1,5 @@
 import numpy as np
-from datasets.ds_manager import DSManager
+from cbfssm.datasets.ds_manager import DSManager
 from cbfssm.datasets.base_ds import BaseDS
 
 
@@ -34,7 +34,7 @@ class RoboMoveSimple(DSManagerDS):
 
     def __init__(self, seq_len, seq_stride):
         super(RoboMoveSimple, self).__init__(seq_len, seq_stride)
-        path = 'datasets/data/robomove_simple.mat'
+        path = self.data_path + 'robomove_simple.mat'
         split = 25000
         self.prepare_data(path, split)
 
@@ -46,7 +46,7 @@ class RoboMove(DSManagerDS):
 
     def __init__(self, seq_len, seq_stride):
         super(RoboMove, self).__init__(seq_len, seq_stride)
-        path = 'datasets/data/robomove.mat'
+        path = self.data_path + 'robomove.mat'
         split = 25000
         self.prepare_data(path, split)
 
@@ -58,6 +58,6 @@ class SpringNonlinear(DSManagerDS):
 
     def __init__(self, seq_len, seq_stride):
         super(SpringNonlinear, self).__init__(seq_len, seq_stride)
-        path = 'datasets/data/spring_nonlinear.mat'
+        path = self.data_path + 'spring_nonlinear.mat'
         split = 5000
         self.prepare_data(path, split, y_crop=1)

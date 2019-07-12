@@ -1,8 +1,8 @@
 import numpy as np
-from cbfssm.datasets.voliro_ds import VoliroFlipDS
-from cbfssm.training.trainer import Trainer
-from cbfssm.outputs.outputs_voliro import OutputsVoliro
-from cbfssm.model.voliro import Voliro
+from cbfssm.datasets import VoliroFlipDS
+from cbfssm.training import Trainer
+from cbfssm.outputs import OutputsVoliro
+from cbfssm.model import Voliro
 
 
 #
