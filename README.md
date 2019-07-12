@@ -1,8 +1,8 @@
 # Conditional Backward/Forward SSM
 
 This repository contains the official implementation of the CBF-SSM model presented in
-[Non-Factorized Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/)
-by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause (TODO: adjust link).
+[Non-Factorized Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/TODO)
+by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause).
 
 Please cite the above paper when using this code in any way.
 
@@ -11,7 +11,10 @@ Please cite the above paper when using this code in any way.
 The datasets PR-SSM was already benchmarked on (Actuator, Ballbeam, Drive, Dryer,
 Furnace, Sarcos) can be downloaded as described in the
 [readme](https://github.com/boschresearch/PR-SSM/tree/master/datasets/real_world_tasks)
-in their repo. TODO: robomove, springnonlinear, voliro.
+in their repo.
+
+The remaining datasets (RoboMove, Voliro, SpringNonLinear) can be downloaded
+[here](https://drive.google.com/open?id=1fBT0xdyvtnW066_FKW_fGp3NvKGPAyyt).
 
 All datasets need to be placed in [cbfssm/datasets/data](cbfssm/datasets/data).
 
