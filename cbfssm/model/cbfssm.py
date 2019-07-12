@@ -146,8 +146,6 @@ class CBFSSM(BaseModel):
         fvar = fvar + self.var_x[:dim_out]
 
         # sampling
-        # p_next = tfp.distributions.MultivariateNormalDiag(fmean, fvar)
-        # out = p_next.sample(1).squeeze(0)
         eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype), [1, 1, dim_out])
         out = tf.add(fmean, tf.multiply(eps, tf.sqrt(fvar)))
         y2_out = tf.cond(write_cond, lambda: y2.write(t, out), lambda: y2)

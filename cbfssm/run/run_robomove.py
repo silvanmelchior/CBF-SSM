@@ -49,7 +49,6 @@ for phase in range(2):
     # evaluation
     output_sel = OutputsRoboMove
 
-
     #
     # Run
     #

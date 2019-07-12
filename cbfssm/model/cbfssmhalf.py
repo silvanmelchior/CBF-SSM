@@ -33,9 +33,9 @@ class CBFSSMHALF(BaseModel):
                             dtype=self.dtype)
 
         # Observation and process noise
-        self.var_x_unc = tf.Variable(backward(self.config['var_x']))
+        self.var_x_unc = tf.Variable(backward(self.config['var_x']), dtype=self.dtype)
         self.var_x = forward(self.var_x_unc)
-        self.var_y_unc = tf.Variable(backward(self.config['var_y']))
+        self.var_y_unc = tf.Variable(backward(self.config['var_y']), dtype=self.dtype)
         self.var_y = forward(self.var_y_unc)
 
         self.var_dict = {'process noise': self.var_x,
@@ -49,13 +49,13 @@ class CBFSSMHALF(BaseModel):
     def _io_arrays(self):
         samples = self.config['samples']
 
-        self.u_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        self.u_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                       clear_after_read=False)
         u_dub = tf.transpose(self.sample_in, perm=[1, 0, 2])
         u_dub = tf.tile(tf.expand_dims(u_dub, axis=2), [1, 1, samples, 1])
         self.u_array = self.u_array.unstack(u_dub)
 
-        self.y_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        self.y_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                       clear_after_read=False)
         y_dub = tf.transpose(self.sample_out, perm=[1, 0, 2])
         y_dub = tf.tile(tf.expand_dims(y_dub, axis=2), [1, 1, samples, 1])
@@ -75,7 +75,7 @@ class CBFSSMHALF(BaseModel):
 
         if recog == 'output':
             x_0 = sample_out[:, 0, :]
-            pad = tf.zeros((self.batch_tf, dim_x - dim_y), dtype=tf.float64)
+            pad = tf.zeros((self.batch_tf, dim_x - dim_y), dtype=self.dtype)
             x_0 = tf.concat((x_0, pad), axis=1)
             x_0 = tf.tile(tf.expand_dims(x_0, axis=1), [1, samples, 1])
 
@@ -83,10 +83,10 @@ class CBFSSMHALF(BaseModel):
             sample_uy = tf.concat((sample_in, sample_out), axis=2)
             sample_uy = sample_uy[:, :recog_len, :]
             rnn_recog = tf.nn.rnn_cell.GRUCell(16)
-            initial_state = rnn_recog.zero_state(self.batch_tf, dtype=tf.float64)
+            initial_state = rnn_recog.zero_state(self.batch_tf, dtype=self.dtype)
             _, recog_state = tf.nn.dynamic_rnn(rnn_recog,
                                                tf.reverse(sample_uy, axis=[1]),
-                                               initial_state=initial_state, dtype=tf.float64,
+                                               initial_state=initial_state, dtype=self.dtype,
                                                scope='RNN_recog')
             dense = tf.layers.dense(recog_state, dim_x)
             x_0 = tf.tile(tf.expand_dims(dense, axis=1), [1, samples, 1])
@@ -97,10 +97,10 @@ class CBFSSMHALF(BaseModel):
     def _forward(self):
         dim_y = self.config['ds'].dim_y
 
-        prob_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf - 1,
+        prob_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf - 1,
                                     clear_after_read=False)
 
-        x_array = tf.TensorArray(dtype=tf.float64, size=self.seq_len_tf,
+        x_array = tf.TensorArray(dtype=self.dtype, size=self.seq_len_tf,
                                  clear_after_read=False)
         x_0 = self._recog_model(self.sample_in, self.sample_out)
         x_array = x_array.write(0, x_0)
@@ -139,7 +139,7 @@ class CBFSSMHALF(BaseModel):
         fvar = fvar + self.var_x
 
         # sampling randomness
-        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=tf.float64), [1, 1, dim_x])
+        eps = tf.tile(tf.random_normal((self.batch_tf, samples, 1), dtype=self.dtype), [1, 1, dim_x])
 
         # sample q(x_t | x_{t-1}, y_t:T)
         var_y_tiled = tf.tile(tf.expand_dims(tf.expand_dims(self.var_y, axis=0), axis=0),
@@ -148,9 +148,9 @@ class CBFSSMHALF(BaseModel):
         y_diff = y_t - fmean[:, :, :dim_y]
         s = var_y_tiled + fvar[:, :, :dim_y]
         k = fvar[:, :, :dim_y] * tf.reciprocal(s)
-        pad = tf.zeros((self.batch_tf, samples, dim_x - dim_y), dtype=tf.float64)
+        pad = tf.zeros((self.batch_tf, samples, dim_x - dim_y), dtype=self.dtype)
         mu = fmean + tf.concat((k * y_diff, pad), axis=2)
-        sig = tf.ones((self.batch_tf, samples, dim_x), dtype=tf.float64) - tf.concat((k, pad), axis=2)
+        sig = tf.ones((self.batch_tf, samples, dim_x), dtype=self.dtype) - tf.concat((k, pad), axis=2)
         sig = tf.square(sig) * fvar
         sig += tf.concat((tf.square(k) * var_y_tiled, pad), axis=2)
         x_t = tf.add(mu, tf.multiply(eps, tf.sqrt(sig)))
@@ -166,7 +166,7 @@ class CBFSSMHALF(BaseModel):
         # KL div regularizer x
         kl_reg = tf.log(fvar) - tf.log(sig) + (sig + tf.pow(mu - fmean, 2.)) / fvar - 1.
         kl_reg = tf.reduce_sum(kl_reg) * tf.cond(
-            do_cond, lambda: tf.constant(0.5, dtype=tf.float64), lambda: tf.constant(0., dtype=tf.float64))
+            do_cond, lambda: tf.constant(0.5, dtype=self.dtype), lambda: tf.constant(0., dtype=self.dtype))
         p_out = p.write(t, kl_reg)
 
         return u, x_out, y, p_out, t + 1
