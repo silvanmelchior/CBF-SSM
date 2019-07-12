@@ -2,17 +2,9 @@
 
 This repository contains the official implementation of the CBF-SSM model presented in
 [Non-Factorized Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/)
-by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause (TODO: adjust link). It was published
-at TODO, 2019.
+by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause (TODO: adjust link).
 
 Please cite the above paper when using this code in any way.
-
-## Dependencies
-
-The code depends on (tested version): 
-* tensorflow (tensorflow-gpu 1.5.0)
-* matplotlib (3.0.0)
-* scipy (1.1.0)
 
 ## Datasets
 
@@ -21,22 +13,20 @@ Furnace, Sarcos) can be downloaded as described in the
 [readme](https://github.com/boschresearch/PR-SSM/tree/master/datasets/real_world_tasks)
 in their repo. TODO: robomove, springnonlinear, voliro.
 
-All datasets need to be placed in [datasets/data](datasets/data).
+All datasets need to be placed in [cbfssm/datasets/data](cbfssm/datasets/data).
 
-## Python Path
+## Installation
 
-The script [set_path.sh](set_path.sh) sets $PYTHONPATH in a linux bash console s.t.
-the import statements of all scripts are correct. It needs to be sourced:
+To install CBF-SSM, run:
 
 ```
 $ cd <path-of-repo>
-$ . set_path.sh
-$ python3 /cbfssm/run/<script-name>.py
+$ pip3 install -e .
 ```
 
 ## Reproduce Paper Results
 
-The folder [cbfssm/run](cbfssm/run) contains a script to reproduce the results for every
+The folder [run](run) contains a script to reproduce the results for every
 dataset we use to compare CBF-SSM to previous work. The results will be in a new folder
 called *run_output*.
 
@@ -62,5 +52,5 @@ again see [example](cbfssm/datasets/dsmanager_ds.py).
 
 ### Run File
 
-Then, write a new run-file. You can use the [template](cbfssm/run/template.py) as a
+Then, write a new run-file. You can use the [template](run/template.py) as a
 starting point, which also contains a lot of comments on how to choose your parameters.
