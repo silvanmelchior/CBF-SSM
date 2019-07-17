@@ -1,8 +1,8 @@
 # Conditional Backward/Forward SSM
 
 This repository contains the official implementation of the CBF-SSM model presented in
-[Non-Factorized Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/TODO)
-by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause).
+[Structured Variational Inference in Unstable Gaussian Process State Space Models](https://arxiv.org/abs/1907.07035)
+by Silvan Melchior, Felix Berkenkamp, Sebastian Curi, Andreas Krause.
 
 Please cite the above paper when using this code in any way.
 
