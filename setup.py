@@ -7,7 +7,7 @@ setup(name='cbfssm',
           'numpy',
           'scipy',
           'sklearn',
-          'tensorflow==1.8.0',
+          'tensorflow==2.3.1',
           'matplotlib',
           'tqdm'
       ])
